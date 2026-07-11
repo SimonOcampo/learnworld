@@ -22,4 +22,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .btn-lime { background: #c9f66f; color: #13211b; border: 1px solid #13211b; }
 .fade-up { animation: fadeUp .45s ease both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } }
+.stage-enter { animation: stageEnter .55s cubic-bezier(.22,.61,.36,1) both; }
+.card-float { transition: transform .2s ease, box-shadow .2s ease; }
+.card-float:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(19,33,27,.12); }
+@keyframes stageEnter { from { opacity: 0; transform: translateY(12px) scale(.985); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

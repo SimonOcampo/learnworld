@@ -3,10 +3,13 @@ import AxeBuilder from "@axe-core/playwright";
 
 test("builds a multi-skill quest with isolated simulations", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Choose the concepts/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Turn lectures into worlds/ })).toBeVisible();
+  await page.getByRole("textbox", { name: "Paste lecture excerpt" }).fill("Lecture covers graph algorithms and sorting.");
+  await page.getByRole("button", { name: /Analyze material/ }).click();
+  await expect(page.getByRole("heading", { name: /Recommended skills/ })).toBeVisible();
   await page.getByRole("button", { name: /Sorting/ }).click();
   await expect(page.getByText("2 skills selected", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Launch quest/ }).click();
+  await page.getByRole("button", { name: /Start teaching arena/ }).click();
   await expect(page.getByRole("heading", { name: "Dijkstra’s algorithm", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Insertion sort", exact: true })).toBeVisible();
   const next = page.getByRole("button", { name: "Next step", exact: true });
@@ -17,6 +20,7 @@ test("builds a multi-skill quest with isolated simulations", async ({ page }) =>
 
 test("filters the complete curriculum and opens custom workshop", async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: /Skip to manual selection/ }).click();
   await page.getByPlaceholder("Search 32 skills…").fill("Bloom");
   await expect(page.getByRole("heading", { name: "Bloom Filters", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Custom workshop" }).click();
