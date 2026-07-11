@@ -106,6 +106,11 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
   const concept = lesson.concept;
   const meta = conceptMeta[concept];
   const isGraph = meta.template === "graph";
+  const treeOperations = concept === "heaps"
+    ? ["insert", "extract-min"] as const
+    : concept === "b_trees"
+      ? ["insert", "delete", "search"] as const
+      : ["traverse", "search", "insert", "delete"] as const;
   const defaults = useMemo(() => defaultInputs(concept), [concept]);
 
   const [graph, setGraph] = useState<GraphScenario>(defaults.graph);
@@ -578,31 +583,31 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
             {meta.template === "tree" && (
               <>
                 <label className="flex items-center gap-2 text-sm font-bold">
-                  Nodes
+                  Initial values
                   <input
-                    className="w-32 rounded-xl border border-ink/20 bg-white px-3 py-2 text-xs"
-                    value={tree.nodes.join(", ")}
+                    aria-label="Initial tree values"
+                    className="w-44 rounded-xl border border-ink/20 bg-white px-3 py-2 text-xs"
+                    placeholder={concept === "binary_trees" ? "10, 5, 15, null, 7" : "10, 5, 15, 2, 7"}
+                    value={tree.nodes.map((node) => node ?? "null").join(", ")}
                     onChange={(e) => {
-                      const vals = e.target.value.split(",").map(v => {
-                        const n = Number(v.trim());
-                        return isNaN(n) ? null : n;
-                      }).filter((v): v is number => v !== null);
+                      const vals = e.target.value.split(",").map((value) => {
+                        const token = value.trim().toLowerCase();
+                        if (!token || token === "null" || token === "none" || token === "-") return null;
+                        const number = Number(token);
+                        return Number.isFinite(number) ? number : null;
+                      });
                       setTree(val => ({ ...val, nodes: vals }));
                     }}
                   />
                 </label>
                 <label className="flex items-center gap-2 text-sm font-bold">
-                  Op
+                  Action
                   <select
                     className="rounded-xl border border-ink/20 bg-white px-3 py-2 text-xs"
                     value={tree.operation ?? "traverse"}
                     onChange={(e) => setTree(val => ({ ...val, operation: e.target.value as "insert" | "delete" | "search" | "traverse" | "extract-min" }))}
                   >
-                    <option value="traverse">traverse</option>
-                    <option value="search">search</option>
-                    <option value="insert">insert</option>
-                    <option value="delete">delete</option>
-                    {concept === "heaps" && <option value="extract-min">extract min</option>}
+                    {treeOperations.map((operation) => <option key={operation} value={operation}>{operation.replace("-", " ")}</option>)}
                   </select>
                 </label>
                 {(tree.operation ?? "traverse") !== "traverse" && tree.operation !== "extract-min" && (
@@ -613,6 +618,20 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
                       type="number"
                       value={tree.searchTarget ?? 0}
                       onChange={(e) => setTree(val => ({ ...val, searchTarget: Number(e.target.value) }))}
+                    />
+                  </label>
+                )}
+                {concept === "b_trees" && (
+                  <label className="flex items-center gap-2 text-sm font-bold">
+                    Minimum degree
+                    <input
+                      aria-label="B-tree minimum degree"
+                      className="w-16 rounded-xl border border-ink/20 bg-white px-3 py-2 text-xs"
+                      type="number"
+                      min="2"
+                      max="8"
+                      value={tree.btreeOrder ?? 2}
+                      onChange={(e) => setTree(val => ({ ...val, btreeOrder: Math.max(2, Math.min(8, Number(e.target.value) || 2)) }))}
                     />
                   </label>
                 )}
@@ -630,6 +649,9 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
                     </select>
                   </label>
                 )}
+                <span className="max-w-sm text-xs font-semibold text-ink/50">
+                  {concept === "binary_trees" ? "Use null to leave a level-order child empty." : "Values rebuild the starting tree; choose an action to trace next."}
+                </span>
               </>
             )}
 
@@ -814,8 +836,8 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
             {meta.template === "linked" && <LinkedLab snapshot={snapshot as LinkedSnapshot} />}
             {meta.template === "linear-adt" && <LinearAdtLab snapshot={snapshot as LinearAdtSnapshot} concept={concept} />}
             {meta.template === "complexity" && <ComplexityLab snapshot={snapshot as ComplexitySnapshot} />}
-            {meta.template === "tree" && <TreeLab snapshot={snapshot as TreeSnapshot} />}
-            {meta.template === "trie" && <TrieLab snapshot={snapshot as TrieSnapshot} />}
+            {meta.template === "tree" && <TreeLab snapshot={snapshot as TreeSnapshot} layoutKey={JSON.stringify(tree)} nodeTheme={["binary_trees", "binary_search_trees", "avl_trees", "treaps"].includes(lesson.concept) ? "dijkstra" : "default"} />}
+            {meta.template === "trie" && <TrieLab snapshot={snapshot as TrieSnapshot} layoutKey={JSON.stringify(trie)} />}
             {meta.template === "bitwise" && <BitwiseLab snapshot={snapshot as BitwiseSnapshot} />}
             {meta.template === "recurrence" && <RecurrenceLab snapshot={snapshot as RecurrenceSnapshot} />}
             {meta.template === "decision-tree" && <BacktrackingLab snapshot={snapshot as BacktrackingSnapshot} />}

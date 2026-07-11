@@ -255,7 +255,11 @@ export function defaultInputs(concept: ConceptId): SimulationInputs {
     linked: defaultLinked,
     linearAdt: defaultLinearAdt,
     complexity: defaultComplexity,
-    tree: defaultTree,
+    tree: {
+      ...defaultTree,
+      operation: concept === "heaps" || concept === "b_trees" ? "insert" : defaultTree.operation,
+      btreeOrder: concept === "b_trees" ? 2 : defaultTree.btreeOrder,
+    },
     trie: defaultTrie,
     bitwise: defaultBitwise,
     recurrence: defaultRecurrence,
