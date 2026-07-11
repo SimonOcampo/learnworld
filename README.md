@@ -1,6 +1,6 @@
 # LearnWorld
 
-LearnWorld turns lecture notes into deterministic, explorable algorithm simulations. The MVP includes Dijkstra, BFS, DFS, binary search, and insertion sort across two reusable visual labs.
+LearnWorld turns lecture notes into deterministic, explorable algorithm simulations with game options. The MVP includes Dijkstra, BFS, DFS, binary search, and insertion sort across two reusable visual labs.
 
 ## Run locally
 
