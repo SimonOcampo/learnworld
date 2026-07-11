@@ -24,7 +24,7 @@ export type ArraySnapshot = {
   complete: boolean;
 };
 
-function engine<I, S>(build: (input: I) => SimulationRun<S>): SimulationEngine<I, S> {
+export function engine<I, S>(build: (input: I) => SimulationRun<S>): SimulationEngine<I, S> {
   return {
     initialize: build,
     availableActions: (run, step) => step < run.events.length ? ["step", "reset"] : ["reset"],
@@ -201,4 +201,70 @@ export const insertionSortEngine = engine<ArrayScenario, ArraySnapshot>((input) 
   return { initial: states[0], states, events };
 });
 
-export const engines = { dijkstra: dijkstraEngine, bfs: bfsEngine, dfs: dfsEngine, binary_search: binarySearchEngine, insertion_sort: insertionSortEngine };
+import { pointersEngine, structuresEngine, dynamicMemoryEngine } from "./simulations/engines/memoryEngine";
+import { stringsEngine, arraysEngine } from "./simulations/engines/sequenceEngine";
+import { recursionEngine } from "./simulations/engines/recursionEngine";
+import { linkedListEngine, skipListEngine } from "./simulations/engines/linkedEngine";
+import { stacksEngine, queuesEngine } from "./simulations/engines/linearAdtEngine";
+import { algAnalysisEngine, growthOfFunctionsEngine, bigOEngine, bigOmegaEngine, bigThetaEngine } from "./simulations/engines/complexityEngine";
+import { treeEngine, heapsEngine, avlEngine, btreeEngine, rbtEngine, treapsEngine } from "./simulations/engines/treeEngine";
+import { triesEngine } from "./simulations/engines/trieEngine";
+import { bitwiseEngine } from "./simulations/engines/bitwiseEngine";
+import { masterTheoremEngine, divideAndConquerEngine } from "./simulations/engines/recurrenceEngine";
+import { backtrackingEngine } from "./simulations/engines/backtrackingEngine";
+import { bloomFilterEngine } from "./simulations/engines/bloomEngine";
+import { greedyEngine } from "./simulations/engines/greedyEngine";
+import { dpEngine } from "./simulations/engines/dpEngine";
+
+export * from "./simulations/engines/memoryEngine";
+export * from "./simulations/engines/sequenceEngine";
+export * from "./simulations/engines/recursionEngine";
+export * from "./simulations/engines/linkedEngine";
+export * from "./simulations/engines/linearAdtEngine";
+export * from "./simulations/engines/complexityEngine";
+export * from "./simulations/engines/treeEngine";
+export * from "./simulations/engines/trieEngine";
+export * from "./simulations/engines/bitwiseEngine";
+export * from "./simulations/engines/recurrenceEngine";
+export * from "./simulations/engines/backtrackingEngine";
+export * from "./simulations/engines/bloomEngine";
+export * from "./simulations/engines/greedyEngine";
+export * from "./simulations/engines/dpEngine";
+
+export const engines = {
+  dijkstra: dijkstraEngine,
+  bfs: bfsEngine,
+  dfs: dfsEngine,
+  binary_search: binarySearchEngine,
+  insertion_sort: insertionSortEngine,
+  pointers: pointersEngine,
+  strings: stringsEngine,
+  arrays: arraysEngine,
+  structures: structuresEngine,
+  dynamic_memory_allocation: dynamicMemoryEngine,
+  recursion: recursionEngine,
+  linked_lists: linkedListEngine,
+  skip_lists: skipListEngine,
+  stacks: stacksEngine,
+  queues: queuesEngine,
+  algorithm_analysis: algAnalysisEngine,
+  growth_of_functions: growthOfFunctionsEngine,
+  big_o: bigOEngine,
+  big_omega: bigOmegaEngine,
+  big_theta: bigThetaEngine,
+  binary_trees: treeEngine,
+  binary_search_trees: treeEngine,
+  heaps: heapsEngine,
+  tries: triesEngine,
+  bitwise_operators: bitwiseEngine,
+  avl_trees: avlEngine,
+  b_trees: btreeEngine,
+  red_black_trees: rbtEngine,
+  treaps: treapsEngine,
+  master_theorem: masterTheoremEngine,
+  divide_and_conquer: divideAndConquerEngine,
+  backtracking: backtrackingEngine,
+  bloom_filters: bloomFilterEngine,
+  greedy_algorithms: greedyEngine,
+  dynamic_programming: dpEngine,
+};

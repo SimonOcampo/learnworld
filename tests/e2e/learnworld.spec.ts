@@ -1,35 +1,30 @@
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
-const concepts = [
-  { button: "graph lab Dijkstra’s algorithm Find shortest paths through a weighted graph.", heading: "Dijkstra’s algorithm", firstEvent: "Settle A; distance 0 is now final." },
-  { button: "graph lab Breadth-first search Explore a graph one level at a time.", heading: "Breadth-first search", firstEvent: "BFS visits A from the front of the queue." },
-  { button: "graph lab Depth-first search Follow a path deeply, then backtrack.", heading: "Depth-first search", firstEvent: "DFS visits A from the top of the stack." },
-  { button: "array lab Binary search Repeatedly halve a sorted search range.", heading: "Binary search", firstEvent: "Compare target 31 with midpoint value 24." },
-  { button: "array lab Insertion sort Grow a sorted prefix one item at a time.", heading: "Insertion sort", firstEvent: "Compare 8 with key 3." },
-] as const;
-
-for (const concept of concepts) {
-  test(`launches and steps through ${concept.heading}`, async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Don’t read the concept/ })).toBeVisible();
-    await page.getByRole("button", { name: concept.button, exact: true }).click();
-    await page.getByRole("button", { name: "Skip upload and use a curated lesson", exact: true }).click();
-    await expect(page.getByRole("heading", { name: concept.heading, exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Next step", exact: true }).click();
-    await expect(page.locator('[aria-live="polite"]')).toHaveText(concept.firstEvent);
-    await page.getByRole("button", { name: "Back to concepts", exact: true }).click();
-    await expect(page.getByText("The studio", { exact: true })).toBeVisible();
-  });
-}
-
-test("edits Dijkstra weights and scores a deterministic challenge locally", async ({ page }) => {
+test("builds a multi-skill quest with isolated simulations", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Skip upload and use a curated lesson", exact: true }).click();
-  const weight = page.getByRole("spinbutton", { name: "Edge weight", exact: true });
-  await weight.fill("1");
-  await expect(weight).toHaveValue("1");
-  await page.getByRole("button", { name: "Challenge me", exact: true }).click();
-  await expect(page.getByText("Which node or index is the focus of the next deterministic event?", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "A", exact: true }).click();
-  await expect(page.getByText("Correct — that matches the deterministic next event.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Choose the concepts/ })).toBeVisible();
+  await page.getByRole("button", { name: /Sorting/ }).click();
+  await expect(page.getByText("2 skills selected", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Launch quest/ }).click();
+  await expect(page.getByRole("heading", { name: "Dijkstra’s algorithm", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Insertion sort", exact: true })).toBeVisible();
+  const next = page.getByRole("button", { name: "Next step", exact: true });
+  await next.nth(0).click();
+  await expect(page.locator('[aria-live="polite"]').nth(0)).toContainText("Settle A");
+  await expect(page.locator('[aria-live="polite"]').nth(1)).toContainText("Ready");
+});
+
+test("filters the complete curriculum and opens custom workshop", async ({ page }) => {
+  await page.goto("/");
+  await page.getByPlaceholder("Search 32 skills…").fill("Bloom");
+  await expect(page.getByRole("heading", { name: "Bloom Filters", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Custom workshop" }).click();
+  await expect(page.getByRole("heading", { name: /Turn your material/ })).toBeVisible();
+});
+
+test("has no serious automated accessibility violations", async ({ page }) => {
+  await page.goto("/");
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(results.violations.filter((violation) => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
 });

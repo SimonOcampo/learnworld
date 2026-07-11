@@ -9,11 +9,11 @@ export function TutorPanel({ lesson, snapshot, event, nextEvent }: { lesson: Com
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
 
-  async function ask(mode: "explain" | "challenge") {
+  async function ask(mode: "explain" | "challenge" | "hint" | "summarize") {
     setLoading(true); setFeedback("");
     try {
-      const result = await fetch("/api/tutor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ lesson, snapshot, event, nextEvent, mode }) });
-      setResponse(await result.json());
+      const result = await fetch("/api/tutor", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ schemaVersion: 1, lesson, snapshot, event, nextEvent, mode, mastery: 0, misconceptions: [] }) });
+      const data=await result.json();if(!result.ok)throw new Error(data.error);setResponse(data);
     } catch {
       setResponse({ explanation: event?.message ?? lesson.keyPoints[0], question: mode === "challenge" ? "What state change do you predict next?" : "", options: [], expectedAnswer: "Use the visible frontier and active values.", hint: "Read the highlighted algorithm state.", misconception: null, difficulty: "same" });
     } finally { setLoading(false); }
@@ -28,6 +28,8 @@ export function TutorPanel({ lesson, snapshot, event, nextEvent }: { lesson: Com
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         <button className="btn border border-ink/15 bg-white text-sm" onClick={() => ask("explain")} disabled={loading}><Lightbulb size={16} /> Explain</button>
         <button className="btn btn-lime text-sm" onClick={() => ask("challenge")} disabled={loading}><MessageCircleQuestion size={16} /> Challenge me</button>
+        <button className="btn border border-ink/15 bg-white text-sm" onClick={() => ask("hint")} disabled={loading}>Give a hint</button>
+        <button className="btn border border-ink/15 bg-white text-sm" onClick={() => ask("summarize")} disabled={loading}>Summarize</button>
       </div>
     </aside>
   );
