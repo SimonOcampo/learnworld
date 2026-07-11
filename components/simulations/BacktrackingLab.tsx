@@ -3,7 +3,7 @@
 import type { BacktrackingSnapshot } from "@/lib/engines";
 
 export function BacktrackingLab({ snapshot }: { snapshot: BacktrackingSnapshot }) {
-  const { problem, size, board, success, complete } = snapshot;
+  const { problem, size, board, path = [], currentSelection = [], success, complete } = snapshot;
 
   const isNQueens = problem === "n-queens" && board !== undefined;
 
@@ -57,12 +57,11 @@ export function BacktrackingLab({ snapshot }: { snapshot: BacktrackingSnapshot }
             </div>
           )}
         </div>
-      ) : (
-        /* Generic Fallback */
-        <div className="text-center font-bold text-ink/40">
-          Backtracking in progress ({problem})...
-        </div>
-      )}
+      ) : problem === "maze" && board ? (
+        <div className="flex flex-col items-center"><span className="mb-4 text-xs font-black uppercase text-ink/50">Maze search</span><div className="grid overflow-hidden rounded-xl border-4 border-ink" style={{ gridTemplateColumns: `repeat(${size}, 42px)` }}>{board.map((row, rowIndex) => row.map((cell, colIndex) => { const onPath = path.some(([pathRow, pathCol]) => pathRow === rowIndex && pathCol === colIndex); return <div key={`${rowIndex}-${colIndex}`} className={`flex h-10 w-10 items-center justify-center border border-ink/10 ${cell ? "bg-ink" : onPath ? "bg-lime" : "bg-white"}`}>{onPath && "•"}</div>; }))}</div><p className="mt-4 text-xs font-bold">{complete ? success ? "Path found" : "No path found" : "Exploring path"}</p></div>
+      ) : problem === "subset-sum" ? (
+        <div className="text-center"><p className="text-xs font-black uppercase text-ink/50">Subset-sum search</p><div className="mt-4 flex flex-wrap justify-center gap-2">{currentSelection.map((value, index) => <span key={`${value}-${index}`} className="rounded-lg bg-lime px-3 py-2 font-black">{value}</span>)}</div><p className="mt-4 text-sm font-bold">{complete ? success ? "Matching subset found" : "No matching subset" : "Trying combinations"}</p></div>
+      ) : <div className="text-center font-bold text-ink/40">Backtracking in progress ({problem})...</div>}
     </div>
   );
 }

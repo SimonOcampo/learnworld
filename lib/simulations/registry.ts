@@ -159,6 +159,21 @@ const defaultMemory: MemoryScenario = {
   statements: ["p = &x", "*p = 99"]
 };
 
+const defaultStructureMemory: MemoryScenario = {
+  variables: [
+    { name: "s.x", type: "int", value: "1", address: "0x1000" },
+    { name: "p", type: "struct*", value: "0x1000", address: "0x2000" }
+  ],
+  heapAllocations: [],
+  statements: ["s.x = 10", "p->x = 20"]
+};
+
+const defaultDynamicMemory: MemoryScenario = {
+  variables: [{ name: "p", type: "int*", value: "0x0000", address: "0x1000" }],
+  heapAllocations: [],
+  statements: ["p = malloc(4)", "*p = 9", "free(p)"]
+};
+
 const defaultSequence: SequenceScenario = {
   elements: ["a", "b", "c", "\0"],
   activeIndex: 0,
@@ -249,7 +264,7 @@ export function defaultInputs(concept: ConceptId): SimulationInputs {
   return {
     graph: graphScenario,
     array: concept === "insertion_sort" ? arrayScenarios.insertion_sort : arrayScenarios.binary_search,
-    memory: defaultMemory,
+    memory: concept === "structures" ? defaultStructureMemory : concept === "dynamic_memory_allocation" ? defaultDynamicMemory : defaultMemory,
     sequence: defaultSequence,
     callStack: defaultCallStack,
     linked: defaultLinked,

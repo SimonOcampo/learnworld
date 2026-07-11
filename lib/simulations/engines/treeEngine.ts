@@ -1727,16 +1727,16 @@ export const treapsEngine = engine<TreeScenario, TreeSnapshot>((input) => {
 
   // Build initial treap silently
   const buildValues = nodesArr.filter((v): v is string | number => v !== null && v !== undefined);
-  for (const v of buildValues) {
+  for (const [index, v] of buildValues.entries()) {
     const val = toNum(v);
-    treapRoot = treapInsertRec(treapRoot, val, priority(val), false);
+    treapRoot = treapInsertRec(treapRoot, val, input.treapPriorities?.[index] ?? priority(val), false);
   }
 
   states.push(snap(treapRoot));
 
   if (operation === "insert") {
     const target = toNum(input.searchTarget ?? input.insertions?.[0] ?? 15);
-    const p = priority(target);
+    const p = input.operationPriority ?? priority(target);
     treapRoot = treapInsertRec(treapRoot, target, p, true);
     pushSnap(states, events, treapRoot, {
       kind: "complete", codeLine: 5,

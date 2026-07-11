@@ -103,9 +103,48 @@ export const backtrackingEngine = engine<BacktrackingScenario, BacktrackingSnaps
       });
     }
 
+  } else if (problem === "maze") {
+    const maze = input.mazeGrid?.map(row => [...row]) ?? [[0, 0, 1], [1, 0, 1], [0, 0, 0]];
+    const n = maze.length;
+    const path: [number, number][] = [];
+    const visited = Array.from({ length: n }, () => Array(n).fill(false));
+    const push = (row: number, col: number, complete: boolean, success: boolean, event: SimulationEvent) => {
+      states.push({ problem, size: n, board: maze.map(line => [...line]), path: [...path], currentSelection: [row, col], success, complete });
+      events.push(event);
+    };
+    const solve = (row: number, col: number): boolean => {
+      if (row < 0 || col < 0 || row >= n || col >= n || maze[row][col] === 1 || visited[row][col]) return false;
+      visited[row][col] = true;
+      path.push([row, col]);
+      push(row, col, false, false, { kind: "visit", codeLine: 1, message: `Visit maze cell (${row}, ${col}).`, focus: [] });
+      if (row === n - 1 && col === n - 1) return true;
+      for (const [nextRow, nextCol] of [[row, col + 1], [row + 1, col], [row, col - 1], [row - 1, col]]) if (solve(nextRow, nextCol)) return true;
+      path.pop();
+      push(row, col, false, false, { kind: "shift", codeLine: 2, message: `Dead end at (${row}, ${col}); backtrack.`, focus: [] });
+      return false;
+    };
+    const solved = solve(0, 0);
+    push(n - 1, n - 1, true, solved, { kind: "complete", codeLine: 3, message: solved ? "Maze path found." : "No maze path exists.", focus: [] });
   } else {
-    states.push({ problem, size, success: true, complete: true });
-    events.push({ kind: "complete", codeLine: 1, message: "Backtracking complete." });
+    const values = input.values ?? [];
+    const target = input.targetSum ?? 0;
+    const selected: number[] = [];
+    const push = (index: number, sum: number, complete: boolean, success: boolean, event: SimulationEvent) => {
+      states.push({ problem, size: values.length, currentSelection: [...selected], success, complete });
+      events.push({ ...event, message: `${event.message} (index ${index}, sum ${sum})` });
+    };
+    const solve = (index: number, sum: number): boolean => {
+      push(index, sum, false, false, { kind: "compare", codeLine: 1, message: "Consider the next subset value", focus: [] });
+      if (sum === target) return true;
+      if (index === values.length || sum > target) return false;
+      selected.push(values[index]);
+      if (solve(index + 1, sum + values[index])) return true;
+      selected.pop();
+      push(index, sum, false, false, { kind: "shift", codeLine: 2, message: `Exclude ${values[index]} and backtrack`, focus: [] });
+      return solve(index + 1, sum);
+    };
+    const solved = solve(0, 0);
+    push(values.length, selected.reduce((sum, value) => sum + value, 0), true, solved, { kind: "complete", codeLine: 3, message: solved ? `Subset reaches ${target}.` : `No subset reaches ${target}.`, focus: [] });
   }
 
   return { initial: states[0], states, events };

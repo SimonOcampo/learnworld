@@ -19,6 +19,8 @@ export type TrieSnapshot = {
 export const triesEngine = engine<TrieScenario, TrieSnapshot>((input) => {
   const words = input.words || ["cat", "car"];
   const searchPrefix = input.searchPrefix || "ca";
+  const operation = input.operation ?? "search";
+  const insertWord = input.insertWord || "";
 
   const nodes: Record<string, TrieNode> = {
     root: { id: "root", char: "", isEndOfWord: false, children: {} }
@@ -69,9 +71,32 @@ export const triesEngine = engine<TrieScenario, TrieSnapshot>((input) => {
   pushState(null, "root", false, {
     kind: "visit",
     codeLine: 1,
-    message: `Trie initialized. Ready to search prefix '${searchPrefix}'.`,
+    message: operation === "insert" ? `Trie initialized. Ready to insert '${insertWord}'.` : `Trie initialized. Ready to search prefix '${searchPrefix}'.`,
     focus: ["root"]
   });
+
+  if (operation === "insert") {
+    let currentId = "root";
+    let prefix = "";
+    for (const char of insertWord) {
+      const current = nodes[currentId];
+      if (!current.children[char]) {
+        const nextId = getNextNodeId();
+        nodes[nextId] = { id: nextId, char, isEndOfWord: false, children: {} };
+        current.children[char] = nextId;
+        currentId = nextId;
+        prefix += char;
+        pushState(prefix, currentId, false, { kind: "place", codeLine: 2, message: `Create node '${char}' for prefix '${prefix}'.`, focus: [currentId] });
+      } else {
+        currentId = current.children[char];
+        prefix += char;
+        pushState(prefix, currentId, false, { kind: "compare", codeLine: 2, message: `Reuse node '${char}' for prefix '${prefix}'.`, focus: [currentId] });
+      }
+    }
+    nodes[currentId].isEndOfWord = true;
+    pushState(insertWord, currentId, true, { kind: "complete", codeLine: 3, message: `Inserted word '${insertWord}'.`, focus: [currentId] });
+    return { initial: states[0], states, events };
+  }
 
   let currId = "root";
   let path = "";

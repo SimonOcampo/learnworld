@@ -111,6 +111,9 @@ export type TreeScenario = {
   operation?: "insert" | "delete" | "search" | "traverse" | "extract-min";
   treeType?: "binary" | "bst" | "heap" | "avl" | "red-black" | "treap" | "btree";
   btreeOrder?: number;
+  /** Priorities aligned with nodes; used only by the treap simulator. */
+  treapPriorities?: number[];
+  operationPriority?: number;
 };
 
 export type TrieScenario = {
@@ -118,6 +121,7 @@ export type TrieScenario = {
   words: string[];
   searchPrefix?: string;
   insertWord?: string;
+  operation?: "search" | "insert";
 };
 
 export type BitwiseScenario = {
@@ -138,6 +142,8 @@ export type BacktrackingScenario = {
   problem: "n-queens" | "maze" | "subset-sum";
   size: number;
   mazeGrid?: number[][];
+  values?: number[];
+  targetSum?: number;
 };
 
 export type BloomScenario = {
@@ -151,6 +157,7 @@ export type GreedyScenario = {
   problem: "knapsack" | "activity-selection" | "huffman";
   items: { id: string; weight: number; value: number; start?: number; end?: number }[];
   capacity?: number;
+  text?: string;
 };
 
 export type DPScenario = {

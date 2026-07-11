@@ -2,9 +2,10 @@
 
 import { ArrowLeft, CheckCircle2, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type SetStateAction } from "react";
 import { conceptMeta } from "@/lib/catalog";
-import { defaultInputs, validateRegistration, type RegisteredRun } from "@/lib/simulations/registry";
+import { defaultInputs, validateRegistration, type RegisteredRun, type SimulationInputs } from "@/lib/simulations/registry";
+import { cloneInputs, defaultRandomSettings, randomInputs, validateInputs, type RandomSettings } from "@/lib/simulations/scenario-utils";
 import type {
   ArrayScenario,
   CompiledLesson,
@@ -45,6 +46,7 @@ import {
   type DPSnapshot
 } from "@/lib/engines";
 import { TutorPanel } from "./TutorPanel";
+import { ScenarioEditor } from "./simulations/ScenarioEditor";
 
 const ArrayLab = dynamic(() => import("./ArrayLab").then((module) => module.ArrayLab), { loading: () => <VisualizationLoading /> });
 const GraphLab = dynamic(() => import("./GraphLab").then((module) => module.GraphLab), { ssr: false, loading: () => <VisualizationLoading /> });
@@ -108,83 +110,54 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
   const isGraph = meta.template === "graph";
   const defaults = useMemo(() => defaultInputs(concept), [concept]);
 
-  const [graph, setGraph] = useState<GraphScenario>(defaults.graph);
-  const [array, setArray] = useState<ArrayScenario>(defaults.array);
-  const [memory, setMemory] = useState<MemoryScenario>(defaults.memory);
-  const [sequence, setSequence] = useState<SequenceScenario>(defaults.sequence);
-  const [callStack, setCallStack] = useState<CallStackScenario>(defaults.callStack);
-  const [linked, setLinked] = useState<LinkedScenario>(defaults.linked);
-  const [linearAdt, setLinearAdt] = useState<LinearAdtScenario>(defaults.linearAdt);
-  const [complexity, setComplexity] = useState<ComplexityScenario>(defaults.complexity);
-  const [tree, setTree] = useState<TreeScenario>(defaults.tree);
-  const [trie, setTrie] = useState<TrieScenario>(defaults.trie);
-  const [bitwise, setBitwise] = useState<BitwiseScenario>(defaults.bitwise);
-  const [recurrence, setRecurrence] = useState<RecurrenceScenario>(defaults.recurrence);
-  const [backtracking, setBacktracking] = useState<BacktrackingScenario>(defaults.backtracking);
-  const [bloom, setBloom] = useState<BloomScenario>(defaults.bloom);
-  const [greedy, setGreedy] = useState<GreedyScenario>(defaults.greedy);
-  const [dp, setDp] = useState<DPScenario>(defaults.dp);
+  const [draftInputs, setDraftInputs] = useState<SimulationInputs>(() => cloneInputs(defaults));
+  const [appliedInputs, setAppliedInputs] = useState<SimulationInputs>(() => cloneInputs(defaults));
+  const [randomSettings, setRandomSettings] = useState<RandomSettings>(defaultRandomSettings);
+  const { graph, array, memory, sequence, callStack, linked, linearAdt, complexity, tree, trie, bitwise, recurrence, backtracking, bloom, greedy, dp } = draftInputs;
+  const updateInput = <K extends keyof SimulationInputs>(key: K, update: SetStateAction<SimulationInputs[K]>) => setDraftInputs(current => ({ ...current, [key]: typeof update === "function" ? (update as (value: SimulationInputs[K]) => SimulationInputs[K])(current[key]) : update }));
+  const setGraph = (update: SetStateAction<GraphScenario>) => updateInput("graph", update);
+  const setArray = (update: SetStateAction<ArrayScenario>) => updateInput("array", update);
+  const setMemory = (update: SetStateAction<MemoryScenario>) => updateInput("memory", update);
+  const setSequence = (update: SetStateAction<SequenceScenario>) => updateInput("sequence", update);
+  const setCallStack = (update: SetStateAction<CallStackScenario>) => updateInput("callStack", update);
+  const setLinked = (update: SetStateAction<LinkedScenario>) => updateInput("linked", update);
+  const setLinearAdt = (update: SetStateAction<LinearAdtScenario>) => updateInput("linearAdt", update);
+  const setComplexity = (update: SetStateAction<ComplexityScenario>) => updateInput("complexity", update);
+  const setTree = (update: SetStateAction<TreeScenario>) => updateInput("tree", update);
+  const setTrie = (update: SetStateAction<TrieScenario>) => updateInput("trie", update);
+  const setBitwise = (update: SetStateAction<BitwiseScenario>) => updateInput("bitwise", update);
+  const setRecurrence = (update: SetStateAction<RecurrenceScenario>) => updateInput("recurrence", update);
+  const setBacktracking = (update: SetStateAction<BacktrackingScenario>) => updateInput("backtracking", update);
+  const setBloom = (update: SetStateAction<BloomScenario>) => updateInput("bloom", update);
+  const setGreedy = (update: SetStateAction<GreedyScenario>) => updateInput("greedy", update);
+  const setDp = (update: SetStateAction<DPScenario>) => updateInput("dp", update);
 
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   const completionSent = useRef(false);
 
   useEffect(() => {
-    setGraph(defaults.graph);
-    setArray(defaults.array);
-    setMemory(defaults.memory);
-    setSequence(defaults.sequence);
-    setCallStack(defaults.callStack);
-    setLinked(defaults.linked);
-    setLinearAdt(defaults.linearAdt);
-    setComplexity(defaults.complexity);
-    setTree(defaults.tree);
-    setTrie(defaults.trie);
-    setBitwise(defaults.bitwise);
-    setRecurrence(defaults.recurrence);
-    setBacktracking(defaults.backtracking);
-    setBloom(defaults.bloom);
-    setGreedy(defaults.greedy);
-    setDp(defaults.dp);
+    const next = cloneInputs(defaults);
+    setDraftInputs(next);
+    setAppliedInputs(cloneInputs(next));
   }, [defaults]);
+
+  const validation = useMemo(() => validateInputs(concept, draftInputs), [concept, draftInputs]);
+  const hasValidationErrors = Object.keys(validation).length > 0;
+  const applyDraft = () => {
+    if (hasValidationErrors) return;
+    setAppliedInputs(cloneInputs(draftInputs));
+    setStep(0);
+    setPlaying(false);
+  };
 
   const run = useMemo<RegisteredRun>(() => {
     return validateRegistration(concept).initialize({
-      graph,
-      array,
-      memory,
-      sequence,
-      callStack,
-      linked,
-      linearAdt,
-      complexity,
-      tree,
-      trie,
-      bitwise,
-      recurrence,
-      backtracking,
-      bloom,
-      greedy,
-      dp
+      ...appliedInputs
     });
   }, [
     concept,
-    graph,
-    array,
-    memory,
-    sequence,
-    callStack,
-    linked,
-    linearAdt,
-    complexity,
-    tree,
-    trie,
-    bitwise,
-    recurrence,
-    backtracking,
-    bloom,
-    greedy,
-    dp
+    appliedInputs
   ]);
 
   const max = run.events.length;
@@ -387,8 +360,12 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
         <section className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div><div className="mb-2 flex items-center gap-2"><span className="pill px-3 py-1 text-xs font-black uppercase">{meta.template} lab</span><span className="text-xs font-bold text-ink/45">Step {Math.min(step, max)} of {max}</span></div><h1 className="display text-4xl font-bold md:text-5xl">{lesson.title}</h1><p className="mt-2 max-w-3xl text-ink/60">{lesson.objective}</p></div>
           
-          {/* STATEFUL CONTROLS FOR EACH TEMPLATE */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <button className="btn btn-primary" onClick={applyDraft} disabled={hasValidationErrors}><Play size={17} /> Run simulation</button>
+            <button className="btn border border-ink/15 bg-white" onClick={() => setDraftInputs(randomInputs(concept, draftInputs, randomSettings))}>Randomize</button>
+            <button className="btn border border-ink/15 bg-white" onClick={() => setDraftInputs(cloneInputs(defaults))}>Restore defaults</button>
+          </div>
+          {false && <div className="flex flex-wrap items-center gap-3">
             {isGraph && (
               <>
                 <label className="flex items-center gap-2 text-sm font-bold">
@@ -799,14 +776,18 @@ export function SimulationShell({ lesson, onExit, embedded = false, onComplete }
                 </label>
               </>
             )}
-          </div>
+          </div>}
         </section>
+
+        <div className="mb-6">
+          <ScenarioEditor concept={concept} inputs={draftInputs} errors={validation} randomSettings={randomSettings} onChange={setDraftInputs} onRandomSettingsChange={setRandomSettings} />
+        </div>
 
         <div className="mb-6 h-2 overflow-hidden rounded-full bg-ink/10"><div className="h-full rounded-full bg-forest transition-all" style={{ width: `${max ? (step / max) * 100 : 0}%` }} /></div>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           <section className="panel p-4 md:p-5">
-            {meta.template === "graph" && graphSnapshot && <GraphLab scenario={graph} snapshot={graphSnapshot} weighted={concept === "dijkstra"} />}
+            {meta.template === "graph" && graphSnapshot && <GraphLab scenario={appliedInputs.graph} snapshot={graphSnapshot} weighted={concept === "dijkstra"} />}
             {meta.template === "array" && arraySnapshot && <ArrayLab snapshot={arraySnapshot} concept={concept as "binary_search" | "insertion_sort"} />}
             {meta.template === "memory" && <MemoryLab snapshot={snapshot as MemorySnapshot} />}
             {meta.template === "sequence" && <SequenceLab snapshot={snapshot as SequenceSnapshot} />}
