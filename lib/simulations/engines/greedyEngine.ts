@@ -146,8 +146,23 @@ export const greedyEngine = engine<GreedyScenario, GreedySnapshot>((input) => {
     });
 
   } else {
-    states.push({ problem, items: rawItems, selectedIds: [], currentWeight: 0, currentValue: 0, capacity, complete: true });
-    events.push({ kind: "complete", codeLine: 1, message: "Greedy algorithm complete." });
+    const frequencies = input.text
+      ? [...input.text].reduce<Record<string, number>>((map, char) => ({ ...map, [char]: (map[char] ?? 0) + 1 }), {})
+      : Object.fromEntries(rawItems.map(item => [item.id, item.value]));
+    const queue = Object.entries(frequencies).map(([id, value]) => ({ id, weight: value, value }));
+    const selected: string[] = [];
+    pushState(queue, selected, 0, 0, false, { kind: "visit", codeLine: 1, message: "Huffman coding: create a queue ordered by symbol frequency.", focus: [] });
+    let nextId = 1;
+    while (queue.length > 1) {
+      queue.sort((a, b) => a.weight - b.weight || a.id.localeCompare(b.id));
+      const left = queue.shift()!;
+      const right = queue.shift()!;
+      const merged = { id: `(${left.id}+${right.id})`, weight: left.weight + right.weight, value: left.value + right.value };
+      queue.push(merged);
+      selected.push(merged.id);
+      pushState(queue, selected, 0, merged.weight, false, { kind: "place", codeLine: 2, message: `Merge least-frequent nodes ${left.id} (${left.weight}) and ${right.id} (${right.weight}) into ${merged.id}.`, focus: [left.id, right.id, `merge_${nextId++}`] });
+    }
+    pushState(queue, selected, 0, queue[0]?.weight ?? 0, true, { kind: "complete", codeLine: 3, message: "Huffman tree construction complete.", focus: [] });
   }
 
   return { initial: states[0], states, events };

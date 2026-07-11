@@ -129,7 +129,7 @@ function runLinkedListSimulation(input: LinkedScenario): SimulationRun<LinkedSna
       );
     }
   } else if (operation === "insert") {
-    const newId = `node_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const newId = `node_${nodes.reduce((max, node) => Math.max(max, Number(node.id.replace("node_", "")) || 0), -1) + 1}`;
     const newValue = operand || "new_item";
     const newNode: LinkedNode = { id: newId, value: newValue, next: null };
 
