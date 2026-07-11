@@ -20,6 +20,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn-primary { background: #13211b; color: white; box-shadow: 0 8px 24px rgba(19,33,27,.18); }
 .btn-lime { background: #c9f66f; color: #13211b; border: 1px solid #13211b; }
+.landing-page > section > div:nth-of-type(2) > div > section,
+.landing-page > section > div:nth-of-type(2) > div > aside { border: 2px solid var(--ink); border-radius: 32px; background: rgba(255,255,255,.8); padding: 1.25rem; box-shadow: 8px 8px 0 #13211b; }
+@media (min-width: 1024px) { .landing-page > section > div:first-child { grid-template-columns: minmax(0, 1fr) 430px; } .landing-page > section > div:first-child > div:last-child { max-width: 430px; } }
 .fade-up { animation: fadeUp .45s ease both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

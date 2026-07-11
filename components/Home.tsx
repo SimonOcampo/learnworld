@@ -3,6 +3,8 @@
 import { ArrowRight, BookOpen, Check, ChevronDown, ChevronUp, Search, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import learnWorldImage from "@/app/Assets/learnworld.png";
 import { builtInSkills } from "@/lib/catalog/repository";
 import { fallbackLesson } from "@/lib/catalog";
 import type { SkillDefinition } from "@/lib/schemas/skill";
@@ -64,15 +66,15 @@ export default function Home() {
   function move(index: number, delta: number) { setSelected((items) => { const next = [...items]; const target = index + delta; if (target < 0 || target >= next.length) return items; [next[index], next[target]] = [next[target], next[index]]; return next; }); }
 
   if (launched) return <QuestSession skills={selected.map(id=>skillMap.get(id)).filter((skill):skill is SkillDefinition=>Boolean(skill))} onExit={() => setLaunched(false)} />;
-  return <main className="min-h-screen bg-cream paper-grid">
+  return <main className="landing-page min-h-screen bg-cream paper-grid">
     <header className="border-b-2 border-ink bg-ink text-white"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5"><span className="display text-2xl font-black">LearnWorld<span className="text-orange">.</span></span><div className="flex items-center gap-3 text-xs font-black"><Link href="/custom" className="rounded-full border border-white/25 px-3 py-1">Custom workshop</Link><span className="rounded-full bg-lime px-3 py-1 text-ink">LEVEL 1</span><span>0 XP</span></div></div></header>
-    <section className="mx-auto max-w-7xl px-5 py-12"><div className="max-w-4xl"><span className="inline-flex items-center gap-2 rounded-full bg-lime px-4 py-2 text-xs font-black uppercase"><Sparkles size={15}/> Build your learning quest</span><h1 className="display mt-5 text-5xl font-black leading-none sm:text-7xl">Choose the concepts.<br/><span className="text-forest">Enter the world.</span></h1><p className="mt-5 max-w-2xl text-lg text-ink/65">Select any mix of CS1 and CS2 skills. Each becomes an independent stop in one scrollable, game-like quest.</p></div>
-      <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <section className="mx-auto max-w-7xl px-5 py-12"><div className="grid items-center gap-8 rounded-[32px] border-2 border-ink bg-white/80 p-6 shadow-[8px_8px_0_#13211b] lg:grid-cols-[minmax(0,1fr)_360px] lg:p-8"><div className="max-w-4xl"><span className="inline-flex items-center gap-2 rounded-full bg-lime px-4 py-2 text-xs font-black uppercase"><Sparkles size={15}/> Build your learning quest</span><h1 className="display mt-5 text-5xl font-black leading-none sm:text-7xl">Choose the concepts.<br/><span className="text-forest">Enter the world.</span></h1><p className="mt-5 max-w-2xl text-lg text-ink/65">Select any mix of CS1 and CS2 skills. Each becomes an independent stop in one scrollable, game-like quest.</p></div><div className="relative mx-auto w-full max-w-sm lg:justify-self-end"><Image src={learnWorldImage} alt="LearnWorld globe and location marker" priority className="aspect-square w-full object-contain" sizes="(min-width: 1024px) 360px, 100vw"/></div></div>
+      <div className="mt-10"><div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <section><div className="panel sticky top-3 z-10 mb-5 flex flex-col gap-3 p-4 sm:flex-row"><label className="flex flex-1 items-center gap-2 rounded-2xl border border-ink/15 bg-white px-4"><Search size={18}/><span className="sr-only">Search skills</span><input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Search 32 skills…" className="w-full bg-transparent py-3 outline-none"/></label><div className="flex gap-2">{(["all","cs1","cs2"] as const).map((value)=><button key={value} onClick={()=>setCourse(value)} className={`rounded-full px-4 py-2 text-xs font-black uppercase ${course===value?"bg-ink text-white":"bg-white"}`}>{value}</button>)}</div></div>
           <div className="grid gap-4 sm:grid-cols-2">{visible.map((skill)=><SkillCard key={skill.id} skill={skill} selected={selected.includes(skill.id)} onToggle={()=>toggle(skill.id)}/>)}</div>
         </section>
         <aside className="panel h-fit p-5 lg:sticky lg:top-5"><div className="flex items-center gap-3"><span className="rounded-xl bg-orange p-2"><BookOpen size={20}/></span><div><h2 className="display text-xl font-black">Quest queue</h2><p className="text-xs font-bold text-ink/45">{selected.length} skill{selected.length===1?"":"s"} selected</p></div></div><ol className="mt-5 space-y-2">{selected.map((id,index)=>{const skill=skillMap.get(id);if(!skill)return null;return <li key={id} className="flex items-center gap-2 rounded-2xl bg-cream p-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-black text-white">{index+1}</span><span className="min-w-0 flex-1 truncate text-sm font-extrabold">{skill.title}</span><button aria-label={`Move ${skill.title} up`} disabled={index===0} onClick={()=>move(index,-1)}><ChevronUp size={17}/></button><button aria-label={`Move ${skill.title} down`} disabled={index===selected.length-1} onClick={()=>move(index,1)}><ChevronDown size={17}/></button><button aria-label={`Remove ${skill.title}`} onClick={()=>toggle(id)}><X size={17}/></button></li>})}</ol>{!selected.length&&<p className="mt-5 rounded-2xl bg-cream p-4 text-sm text-ink/55">Pick at least one skill to begin.</p>}<button disabled={!selected.length} onClick={()=>setLaunched(true)} className="btn btn-lime mt-5 w-full py-4">Launch quest <ArrowRight size={18}/></button></aside>
-      </div>
+      </div></div>
     </section>
   </main>;
 }
