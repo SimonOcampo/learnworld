@@ -15,6 +15,7 @@ import { emptyProgress } from "@/lib/progress/rules";
 import { listCustomSkills } from "@/lib/storage/custom-skills";
 import { SimulationShell } from "./SimulationShell";
 import { GuidedSimulation } from "@/components/simulations/GuidedSimulation";
+import { CustomInteractiveSimulation } from "@/components/simulations/CustomInteractiveSimulation";
 
 const interactiveConcept: Record<string, ConceptId> = {
   sorting: "insertion_sort", "graph-algorithms": "dijkstra", pointers: "pointers", strings: "strings", arrays: "arrays", structures: "structures", "dynamic-memory-allocation": "dynamic_memory_allocation", recursion: "recursion", "linked-lists": "linked_lists", stacks: "stacks", queues: "queues", "algorithm-analysis": "algorithm_analysis", "binary-trees": "binary_trees", "binary-search-trees": "binary_search_trees", heaps: "heaps", tries: "tries", "bitwise-operators": "bitwise_operators", "avl-trees": "avl_trees", "growth-of-functions": "growth_of_functions", "big-o": "big_o", "big-omega": "big_omega", "big-theta": "big_theta", "master-theorem": "master_theorem", "divide-and-conquer": "divide_and_conquer", backtracking: "backtracking", "b-trees": "b_trees", "red-black-trees": "red_black_trees", treaps: "treaps", "skip-lists": "skip_lists", "bloom-filters": "bloom_filters", "greedy-algorithms": "greedy_algorithms", "dynamic-programming": "dynamic_programming"
@@ -93,5 +94,37 @@ function QuestSession({ skills, progress, saveErrorSkillId, onCompleteSkill, onE
 
 function GuidedSkill({ skill, onComplete }: { skill: SkillDefinition; onComplete: () => void }) {
   const family = String(skill.simulation.config.family ?? "guided");
-  return <article className="panel overflow-hidden border-2 border-ink"><div className="bg-ink p-5 text-white"><span className="rounded-full bg-orange px-3 py-1 text-[10px] font-black uppercase text-ink">Deterministic guided simulation</span><h3 className="display mt-4 text-3xl font-black">{skill.objectives[0].text}</h3></div><div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_280px]"><GuidedSimulation family={family} onComplete={onComplete} /><aside className="rounded-3xl bg-lime p-5"><p className="text-xs font-black uppercase">Pip’s field note</p><p className="mt-3 text-sm leading-relaxed">{skill.description}</p>{skill.misconceptions[0] && <p className="mt-5 rounded-2xl bg-white/70 p-3 text-xs font-bold">Watch out: {skill.misconceptions[0].text}</p>}</aside></div></article>;
+  const steps = Array.isArray(skill.simulation.config.steps)
+    ? (skill.simulation.config.steps as { title: string; message: string; prompt: string }[])
+    : undefined;
+  const custom = skill.simulation.engineId === "custom-interactive";
+
+  return (
+    <article className="panel overflow-hidden border-2 border-ink">
+      <div className="bg-ink p-5 text-white">
+        <span className="rounded-full bg-orange px-3 py-1 text-[10px] font-black uppercase text-ink">
+          {custom ? "Fully interactive custom simulation" : "Deterministic guided simulation"}
+        </span>
+        <h3 className="display mt-4 text-3xl font-black">{skill.objectives[0].text}</h3>
+      </div>
+      <div className={custom ? "p-5" : "grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_280px]"}>
+        {custom ? (
+          <CustomInteractiveSimulation config={skill.simulation.config} onComplete={onComplete} />
+        ) : (
+          <>
+            <GuidedSimulation family={family} steps={steps} onComplete={onComplete} />
+            <aside className="rounded-3xl bg-lime p-5">
+              <p className="text-xs font-black uppercase">Pip’s field note</p>
+              <p className="mt-3 text-sm leading-relaxed">{skill.description}</p>
+              {skill.misconceptions[0] && (
+                <p className="mt-5 rounded-2xl bg-white/70 p-3 text-xs font-bold">
+                  Watch out: {skill.misconceptions[0].text}
+                </p>
+              )}
+            </aside>
+          </>
+        )}
+      </div>
+    </article>
+  );
 }

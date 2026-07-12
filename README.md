@@ -1,10 +1,6 @@
 # LearnWorld
 
-<<<<<<< HEAD
-LearnWorld is a local-first, gamified computer-science learning platform. It bundles a validated 32-skill CS1/CS2 catalog, lets learners assemble multi-topic quests, runs supported algorithms through deterministic TypeScript engines, and grounds Gemini tutoring in the exact simulation state.
-=======
-LearnWorld turns lecture notes into deterministic, explorable algorithm simulations with game options. The MVP includes Dijkstra, BFS, DFS, binary search, and insertion sort across two reusable visual labs.
->>>>>>> 3c58a73f5b4973c9b2f55af9af81ff023a0edffe
+LearnWorld is a local-first, gamified computer-science learning platform that turns lecture notes and topics into deterministic, explorable algorithm simulations. It bundles a validated 32-skill CS1/CS2 catalog, lets learners assemble multi-topic quests, runs supported algorithms through deterministic TypeScript engines, and grounds Gemini tutoring in the exact simulation state.
 
 ## Included
 
