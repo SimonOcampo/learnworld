@@ -23,6 +23,29 @@ test("filters the complete curriculum and opens custom workshop", async ({ page 
   await expect(page.getByRole("heading", { name: /Turn your material/ })).toBeVisible();
 });
 
+test("persists XP and completed lessons across quests and replays", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Launch quest/ }).click();
+
+  const nextStep = page.getByRole("button", { name: "Next step", exact: true }).first();
+  for (let step = 0; step < 30 && await nextStep.isEnabled(); step += 1) await nextStep.click();
+  await expect(nextStep).toBeDisabled();
+  await expect(page.getByText(/20 XP/)).toBeVisible();
+
+  await page.getByRole("button", { name: /Edit quest/ }).click();
+  await expect(page.getByRole("button", { name: /Completed.*Graph Algorithms/ })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText(/20 XP/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /Completed.*Graph Algorithms/ })).toBeVisible();
+
+  await page.getByRole("button", { name: /Launch quest/ }).click();
+  await expect(page.locator('a[href="#quest-0"] span')).toHaveText("✓");
+  const replay = page.getByRole("button", { name: "Next step", exact: true }).first();
+  for (let step = 0; step < 30 && await replay.isEnabled(); step += 1) await replay.click();
+  await expect(page.getByText(/20 XP/)).toBeVisible();
+});
+
 test("has no serious automated accessibility violations", async ({ page }) => {
   await page.goto("/");
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

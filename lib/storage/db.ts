@@ -1,7 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { SkillDefinition } from "@/lib/schemas/skill";
 import type { UserProgress } from "@/lib/schemas/progress";
-import { emptyProgress } from "@/lib/progress/rules";
+import { completeSkill, emptyProgress } from "@/lib/progress/rules";
 
 export type StoredCustomSkill = SkillDefinition & { createdAt: string; updatedAt: string; variantOf?: string };
 export type StoredSession = { id: string; title: string; skillIds: string[]; status: "draft" | "active" | "completed"; updatedAt: string };
@@ -26,3 +26,14 @@ export function getDb() {
 
 export async function getProgress() { return (await getDb()).get("progress", "current").then((value) => value ?? emptyProgress()); }
 export async function saveProgress(value: UserProgress) { await (await getDb()).put("progress", value, "current"); }
+
+/** Complete a lesson and persist the resulting progress before reporting success. */
+export async function completeStoredSkill(skillId: string, date = new Date()): Promise<UserProgress> {
+  const db = await getDb();
+  const transaction = db.transaction("progress", "readwrite");
+  const progress = (await transaction.store.get("current")) ?? emptyProgress();
+  const updated = completeSkill(progress, skillId, date);
+  await transaction.store.put(updated, "current");
+  await transaction.done;
+  return updated;
+}

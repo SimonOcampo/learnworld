@@ -1,3 +1,14 @@
 import { describe,expect,it } from "vitest";
-import { awardXp, emptyProgress, levelForXp, masteryScore } from "@/lib/progress/rules";
-describe("progress rules",()=>{it("uses deterministic level thresholds",()=>{expect(levelForXp(0)).toBe(1);expect(levelForXp(100)).toBe(2);expect(levelForXp(400)).toBe(3)});it("awards XP without mutating input",()=>{const before=emptyProgress();const after=awardXp(before,100);expect(before.totalXp).toBe(0);expect(after).toMatchObject({totalXp:100,level:2})});it("rewards independent correctness after sufficient evidence",()=>{expect(masteryScore({independentCorrect:3,hintedCorrect:0,incorrect:0})).toBe(100);expect(masteryScore({independentCorrect:0,hintedCorrect:3,incorrect:0})).toBe(75);expect(masteryScore({independentCorrect:1,hintedCorrect:0,incorrect:0})).toBe(33)})});
+import { awardXp, completeSkill, emptyProgress, levelForXp, masteryScore } from "@/lib/progress/rules";
+
+describe("progress rules",()=>{
+  it("uses deterministic level thresholds",()=>{expect(levelForXp(0)).toBe(1);expect(levelForXp(100)).toBe(2);expect(levelForXp(400)).toBe(3)});
+  it("awards XP without mutating input",()=>{const before=emptyProgress();const after=awardXp(before,100);expect(before.totalXp).toBe(0);expect(after).toMatchObject({totalXp:100,level:2})});
+  it("rewards independent correctness after sufficient evidence",()=>{expect(masteryScore({independentCorrect:3,hintedCorrect:0,incorrect:0})).toBe(100);expect(masteryScore({independentCorrect:0,hintedCorrect:3,incorrect:0})).toBe(75);expect(masteryScore({independentCorrect:1,hintedCorrect:0,incorrect:0})).toBe(33)});
+  it("records a completion once and awards its XP only once",()=>{
+    const completed = completeSkill(emptyProgress(), "sorting", new Date("2026-07-11T12:00:00Z"));
+    expect(completed.totalXp).toBe(20);
+    expect(completed.skills.sorting).toMatchObject({ skillId: "sorting", completedChallengeIds: ["lesson-complete"], independentCorrect: 1 });
+    expect(completeSkill(completed, "sorting", new Date("2026-07-12T12:00:00Z"))).toBe(completed);
+  });
+});
