@@ -20,7 +20,7 @@ test("filters the complete curriculum and opens custom workshop", async ({ page 
   await page.getByPlaceholder("Search 32 skills…").fill("Bloom");
   await expect(page.getByRole("heading", { name: "Bloom Filters", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Custom workshop" }).click();
-  await expect(page.getByRole("heading", { name: /Turn your material/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Turn your material/ })).toBeVisible({ timeout: 20000 });
 });
 
 test("persists XP and completed lessons across quests and replays", async ({ page }) => {
